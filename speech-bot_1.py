@@ -1,5 +1,4 @@
 """
-
 comands:
 so that computer ignores say: cancel
 so that the computer says something you wnánt it to say: say ...
@@ -30,53 +29,42 @@ import datetime
 import os
 import random
 from googlesearch import search
-from deep_translator import GoogleTranslator
-from deep_translator import PonsTranslator
+from deep_translator import GoogleTranslator, PonsTranslator
 import pyjokes
 
 recognizer = sr.Recognizer()
 engine = pyttsx3.init()
 
 # Voice settings
-informative_voice_id = "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\SPEECH\Voices\Tokens\TTS_MS_EN-US_DAVID_11.0"
+informative_voice_id = "HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\SPEECH\\Voices\\Tokens\\TTS_MS_EN-US_DAVID_11.0"
 informative_volume = 1.0
 informative_rate = 180
 
-humorous_voice_id = "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\SPEECH\Voices\Tokens\TTS_MS_EN-US_ZIRA_11.0"
+humorous_voice_id = "HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\SPEECH\\Voices\\Tokens\\TTS_MS_EN-US_ZIRA_11.0"
 humorous_volume = 0.8
 humorous_rate = 150
 
-casual_voice_id = "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\SPEECH\Voices\Tokens\TTS_MS_EN-US_HELEN_11.0"
+casual_voice_id = "HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\SPEECH\\Voices\\Tokens\\TTS_MS_EN-US_HELEN_11.0"
 casual_volume = 0.6
 casual_rate = 160
 
-# Greetings and responses
-question = ['how are you', 'how are you doing']
-responses = ['okay', "I'm fine", "I'm doing great, thank you!"]
-
-# Commands
-cmd1 = ['play music', 'play songs', 'play a song', 'open music player']
-cmd2 = ['tell a joke', 'tell me a joke', 'say something funny', 'tell something funny']
-cmd3 = ['exit', 'close', 'goodbye', 'nothing', 'stop', 'do not do anything', "don't do anything"]
-cmd4 = ['thank you']
-replies = ['you\'re welcome', 'glad I could help you']
-time = ['what time is it','what is the time']
-
-# Jokes
-jokes = [
-    'Can a kangaroo jump higher than a house? Of course, a house doesn’t jump at all.',
-    'My dog used to chase people on a bike a lot. It got so bad, finally I had to take his bike away.',
-    'Doctor: I\'m sorry, but you suffer from a terminal illness and have only 10 to live. Patient: What do you mean, 10? 10 what? Months? Weeks?! Doctor: Nine.'
-]
+# Predefined phrases and commands
+greetings = ['hey there', 'hello', 'hi', 'hai', 'hey!', 'hey']
+questions = ['how are you', 'how are you doing']
+cmd_play_music = ['play music', 'play songs', 'play a song', 'open music player']
+cmd_joke = ['tell a joke', 'tell me a joke', 'say something funny', 'tell something funny']
+cmd_exit = ['exit', 'close', 'goodbye', 'nothing', 'stop', 'do not do anything', "don't do anything"]
+cmd_thanks = ['thank you']
+time_queries = ['what time is it', 'what is the time', 'time']
 
 def set_voice_properties(voice_id, volume, rate):
     engine.setProperty('voice', voice_id)
     engine.setProperty('volume', volume)
     engine.setProperty('rate', rate)
 
-def respond(t, voice_id, volume, rate):
+def respond(text, voice_id=informative_voice_id, volume=informative_volume, rate=informative_rate):
     set_voice_properties(voice_id, volume, rate)
-    engine.say(t)
+    engine.say(text)
     engine.runAndWait()
 
 def listen():
@@ -87,155 +75,227 @@ def listen():
         recognizer.pause_threshold = 1
         audio = recognizer.listen(source)
         print("Recognizing...")
-        
     try:
-        # Using google to recognize audio
         query = recognizer.recognize_google(audio, language='en-in')
         print(f"User said: {query}\n")
+        return query.lower()
     except sr.UnknownValueError:
-        print("Google Speech Recognition could not understand the audio")
-        return "None"
+        print("Could not understand audio")
+        return "none"
     except sr.RequestError as e:
-        print(f"Could not request results from Google Speech Recognition service; {e}")
-        return "None"
+        print(f"Could not request results; {e}")
+        return "none"
     except Exception as e:
-        print(f"An unexpected error occurred; {e}")
-        return "None"
-        
-    return query
-  
+        print(f"Unexpected error: {e}")
+        return "none"
 
 def wishMe():
-    hour = int(datetime.datetime.now().hour)
-    if hour>= 0 and hour<12:
-        respond("Good Morning Sir !", informative_voice_id, informative_volume, informative_rate)
-    elif hour>= 12 and hour<18:
-        respond("Good Afternoon Sir !", informative_voice_id, informative_volume, informative_rate)  
+    hour = datetime.datetime.now().hour
+    if 0 <= hour < 12:
+        respond("Good Morning Sir!", informative_voice_id, informative_volume, informative_rate)
+    elif 12 <= hour < 18:
+        respond("Good Afternoon Sir!", informative_voice_id, informative_volume, informative_rate)
     else:
-        respond("Good Evening Sir !", informative_voice_id, informative_volume, informative_rate) 
-    respond("I am your Assistant", informative_voice_id, informative_volume, informative_rate)
+        respond("Good Evening Sir!", informative_voice_id, informative_volume, informative_rate)
+    respond("I am your Assistant.", informative_voice_id, informative_volume, informative_rate)
+
 def tell_time():
     now = datetime.datetime.now()
     respond(now.strftime("The time is %H:%M"), informative_voice_id, informative_volume, informative_rate)
-def tell_reply():
-    respond(random.choice(replies), casual_voice_id, casual_volume, casual_rate)
-def give_response():
-    respond(random.choice(responses), casual_voice_id, casual_volume, casual_rate)
-def say_goodbye():
-    respond("Goodbye!", casual_voice_id, casual_volume, casual_rate)
-    exit()
+
 def play_music():
+    # Plays a default YouTube video (Rickroll placeholder)
     webbrowser.open_new("https://www.youtube.com/watch?v=dQw4w9WgXcQ")
-    listen()
+
 def tell_joke():
-    respond(pyjokes.get_joke(), humorous_voice_id, humorous_volume, humorous_rate)
+    joke = pyjokes.get_joke()
+    respond(joke, humorous_voice_id, humorous_volume, humorous_rate)
+
 def say_text(text_list):
-    text_list = text_list[1:-1]
-    respond("".join(text_list), casual_voice_id, casual_volume, casual_rate)
-def cmd_open(text_list):
-    text_list.pop(0)
-    if text_list[0] == "youtube":
-        search_youtube(text_list)
-    elif text_list[0] == "wikipedia":
-        search_wikipedia(text_list)
-    elif text_list[0] == "google":
-        search_google(text_list)
-def search_youtube(text_list):
-    text_list = text_list[3:-3]
-    pwk.playonyt("".join(text))
-    listen()
-def search_wikipedia(text_list):
-    text_list = text_list[3:-3]
-    respond(wikipedia.summary(text_list), informative_voice_id, informative_volume, informative_rate)
-    listen()
-def search_google(text_list):
-    text_list = text_list[3:-3]
-    text = "".join(text_list)
-    url = f"https://www.google.com.tr/search?q={text}"
-    webbrowser.open_new_tab(url)
-    listen()
+    text_to_say = " ".join(text_list[1:])
+    respond(text_to_say, casual_voice_id, casual_volume, casual_rate)
+
+def open_website_with_search(service, query_text):
+    if service == "youtube":
+        pwk.playonyt(query_text)
+    elif service == "wikipedia":
+        try:
+            summary = wikipedia.summary(query_text, sentences=2)
+            respond(summary, informative_voice_id, informative_volume, informative_rate)
+        except Exception:
+            respond("Sorry, I couldn't find that on Wikipedia.", informative_voice_id, informative_volume, informative_rate)
+    elif service == "google":
+        url = f"https://www.google.com/search?q={query_text.replace(' ', '+')}"
+        webbrowser.open_new_tab(url)
+        respond(f"Here are the Google search results for {query_text}", informative_voice_id, informative_volume, informative_rate)
+    else:
+        respond(f"Sorry, I can't open {service}. Try youtube, wikipedia, or google.", informative_voice_id, informative_volume, informative_rate)
+
 def translate_text(text_list):
-    text_list = text_list[5:-5]
-    source_lang = None
-    target_lang = None
-    query = []
-    for word in text_list:
-        if word.lower() == "from":
-            source_lang = text_list[text_list.index(word) + 1]
-        elif word.lower() == "to":
-            target_lang = text_list[text_list.index(word) + 1]
+    try:
+        if "from" in text_list and "to" in text_list:
+            from_index = text_list.index("from")
+            to_index = text_list.index("to")
+            source_lang = text_list[from_index + 1]
+            target_lang = text_list[to_index + 1]
+            text_to_translate = " ".join(text_list[to_index + 2:])
+            if not text_to_translate:
+                respond("Please tell me what to translate.", informative_voice_id, informative_volume, informative_rate)
+                return
+            translated = GoogleTranslator(source=source_lang, target=target_lang).translate(text_to_translate)
+            respond(translated, informative_voice_id, informative_volume, informative_rate)
         else:
-            query.append(word)
-    query = " ".join(query)
-    translated = GoogleTranslator(source=source_lang, target=target_lang).translate(query)
-    print(translated)
-    respond(translated, informative_voice_id, informative_volume, informative_rate)
-    listen()
-def synonym_word(text_list):
-    text_list = text_list[5:-5]
-    source_lang = None
-    target_lang = None
-    query = []
-    for word in text_list:
-        if word.lower() == "from":
-            source_lang = text_list[text_list.index(word) + 1]
-        elif word.lower() == "to":
-            target_lang = text_list[text_list.index(word) + 1]
+            respond("Please specify source and target languages like: translate from english to german ...", informative_voice_id, informative_volume, informative_rate)
+    except Exception:
+        respond("Sorry, translation failed.", informative_voice_id, informative_volume, informative_rate)
+
+def find_synonym(text_list):
+    try:
+        if "for" in text_list:
+            for_index = text_list.index("for")
+            word = text_list[for_index + 1]
+            synonyms = PonsTranslator(source="en", target="en").translate(word, return_all=True)
+            if synonyms:
+                synonyms_str = ", ".join(synonyms)
+                respond(f"Synonyms for {word} are: {synonyms_str}", informative_voice_id, informative_volume, informative_rate)
+            else:
+                respond(f"No synonyms found for {word}.", informative_voice_id, informative_volume, informative_rate)
         else:
-            query.append(word)
-    query = " ".join(query)
-    translated = PonsTranslator(source=source_lang, target=target_lang).translate(query,  return_all=True)
-    print(translated)
-    respond(translated, informative_voice_id, informative_volume, informative_rate)
-    listen()
-def audio_text(text_list):
-    text_list = text_list[4:-4]
-    print(text_list)
-def query(text):
-    searchResultList = list(search(text, advanced=True))
-    respond(searchResultList[0].title, informative_voice_id, informative_volume, informative_rate)
-    respond(searchResultList[0].description, informative_voice_id, informative_volume, informative_rate)
+            respond("Please specify the word to find synonym for.", informative_voice_id, informative_volume, informative_rate)
+    except Exception:
+        respond("Failed to find synonyms.", informative_voice_id, informative_volume, informative_rate)
+
+def audio_to_text():
+    respond("Audio to text feature is not implemented yet.", informative_voice_id, informative_volume, informative_rate)
+
+def answer_question(query_text):
+    try:
+        results = list(search(query_text, num_results=3))
+        if results:
+            respond("I found some results for you. Opening them now.", informative_voice_id, informative_volume, informative_rate)
+            for url in results:
+                webbrowser.open_new_tab(url)
+        else:
+            respond("Sorry, I couldn't find anything related.", informative_voice_id, informative_volume, informative_rate)
+    except Exception:
+        respond("Sorry, I couldn't perform the search.", informative_voice_id, informative_volume, informative_rate)
+
 def automate():
-    webbrowser.open_new("zapier.com/apps/code/integrations")
+    webbrowser.open_new("https://zapier.com/apps/code/integrations")
+    respond("Opening automation tools for you.", informative_voice_id, informative_volume, informative_rate)
 
 if __name__ == '__main__':
-    set_voice_properties(informative_voice_id, informative_volume, informative_rate)
-    clear = lambda: os.system('cls')
-    clear()
+    os.system('cls' if os.name == 'nt' else 'clear')
     wishMe()
     while True:
-        text = listen().lower()
-        text_list = text.split()
-        print(text_list)
-        if text_list == "none":
+        text = listen()
+        if text == "none":
             continue
-        elif "cancel" in text_list:
-            listen()
-        elif text_list[0] == "say":
+        text_list = text.split()
+        print(f"Processed command: {text_list}")
+
+        # Ignore command
+        if "cancel" in text_list:
+            respond("Cancelled.", casual_voice_id, casual_volume, casual_rate)
+            continue
+
+        if not text_list:
+            continue
+
+        # Say command
+        if text_list[0] == "say":
             say_text(text_list)
-        elif text in question:
-            give_response()
-        elif "fine" in text_list or "good" in text_list:
-            respond("It's good to know that your fine", casual_voice_id, casual_volume, casual_rate)
-        elif "who made you" in text or "who created you" in text_list:
+            continue
+
+        # Greetings
+        if any(greet in text for greet in greetings):
+            respond(random.choice(["Hey!", "Hello!", "Hi there!"]), casual_voice_id, casual_volume, casual_rate)
+            continue
+
+        # How are you?
+        if any(q in text for q in questions):
+            respond(random.choice(["I'm good, thanks for asking!", "Doing well, how about you?"]), casual_voice_id, casual_volume, casual_rate)
+            continue
+
+        # Replies for fine/good
+        if "fine" in text_list or "good" in text_list:
+            respond("It's good to know that you're fine.", casual_voice_id, casual_volume, casual_rate)
+            continue
+
+        # Who made you?
+        if "who made you" in text or "who created you" in text:
             respond("I have been created by Soham.", casual_voice_id, casual_volume, casual_rate)
-        elif text in cmd1:
+            continue
+
+        # Play music
+        if any(cmd in text for cmd in cmd_play_music):
             play_music()
-        elif text in cmd2:
+            continue
+
+        # Tell joke
+        if any(cmd in text for cmd in cmd_joke):
             tell_joke()
-        elif text in cmd3:
-            say_goodbye()
-        elif text in cmd4:
-            tell_reply()
-        elif text in time:
+            continue
+
+        # Exit
+        if any(cmd in text for cmd in cmd_exit):
+            respond("Goodbye!", casual_voice_id, casual_volume, casual_rate)
+            break
+
+        # Thank you
+        if any(cmd in text for cmd in cmd_thanks):
+            respond(random.choice(["You're welcome!", "Glad I could help!"]), casual_voice_id, casual_volume, casual_rate)
+            continue
+
+        # Time query
+        if any(tq in text for tq in time_queries):
             tell_time()
-        elif text_list[0] == "open":
-            cmd_open(text_list)
-        elif "translate" in text_list:
+            continue
+
+        # Open commands: open youtube/wikipedia/google and search/play
+        if text_list[0] == "open":
+            if len(text_list) >= 3:
+                service = text_list[1]
+                if service in ["youtube", "wikipedia", "google"]:
+                    if "play" in text_list:
+                        action_index = text_list.index("play")
+                    elif "search" in text_list:
+                        action_index = text_list.index("search")
+                    else:
+                        respond(f"Please say 'play' or 'search' after {service}.", informative_voice_id, informative_volume, informative_rate)
+                        continue
+                    query_text = " ".join(text_list[action_index + 1:])
+                    if not query_text:
+                        respond("Please specify what to search or play.", informative_voice_id, informative_volume, informative_rate)
+                        continue
+                    open_website_with_search(service, query_text)
+                    continue
+                else:
+                    respond(f"I can't open {service}. Try youtube, wikipedia, or google.", informative_voice_id, informative_volume, informative_rate)
+                    continue
+            else:
+                respond("Please specify what to open.", informative_voice_id, informative_volume, informative_rate)
+                continue
+
+        # Translate command
+        if text_list[0] == "translate":
             translate_text(text_list)
-        elif "synonym" in text_list:
-            synonym_word(text_list)
-        elif "audio into text" in text_list:
-            audio_text(text_list)
-        else:
-            query(text)
+            continue
+
+        # Find synonym command
+        if "synonym" in text_list:
+            find_synonym(text_list)
+            continue
+
+        # Audio to text command
+        if "audio" in text and "text" in text:
+            audio_to_text()
+            continue
+
+        # Automate
+        if "automate" in text_list:
+            automate()
+            continue
+
+        # Fallback: treat input as a question to answer
+        answer_question(text)
